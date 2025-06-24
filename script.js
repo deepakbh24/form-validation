@@ -1,169 +1,282 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-/* Form container - centered positioning */
-.form-container {
-    background: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 500px;
-    position: relative;
-}
-
-.form-title {
-    text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-    font-size: 28px;
-    font-weight: 600;
-}
-
-/* Form field styling */
-.form-group {
-    margin-bottom: 20px;
-    position: relative;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    color: #555;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="password"] {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e1e5e9;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    background-color: #fafafa;
-}
-
-input:focus {
-    outline: none;
-    border-color: #667eea;
-    background-color: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-/* Password field with show/hide functionality */
-.password-container {
-    position: relative;
-}
-
-.password-toggle {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #667eea;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.password-toggle:hover {
-    color: #5a6fd8;
-}
-
-/* Submit button */
-.submit-btn {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.submit-btn:active {
-    transform: translateY(0);
-}
-
-/* Message boxes */
-.message-box {
-    padding: 12px 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-weight: 500;
-    display: none;
-    animation: slideIn 0.3s ease;
-}
-
-.error-message {
-    background-color: #fee;
-    color: #c53030;
-    border: 1px solid #feb2b2;
-}
-
-.success-message {
-    background-color: #f0fff4;
-    color: #2f855a;
-    border: 1px solid #9ae6b4;
-}
-
-.field-error {
-    border-color: #e53e3e !important;
-    background-color: #fff5f5;
-}
-
-.field-success {
-    border-color: #38a169 !important;
-    background-color: #f0fff4;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Responsive design */
-@media (max-width: 600px) {
-    .form-container {
-        padding: 30px 20px;
-        margin: 10px;
-    }
+$(document).ready(function() {
+    // Initialize form validation
+    initializeFormValidation();
     
-    .form-title {
-        font-size: 24px;
+    // Initialize password toggle functionality
+    initializePasswordToggle();
+    
+    // Real-time validation on input
+    setupRealtimeValidation();
+});
+
+/**
+ * Initialize form validation functionality
+ */
+function initializeFormValidation() {
+    $('#registrationForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Clear previous messages
+        hideMessage();
+        
+        // Validate all fields
+        const isValid = validateForm();
+        
+        if (isValid) {
+            showSuccessMessage('Registration successful! All fields are valid.');
+            // Here you would typically send data to server
+            console.log('Form submitted successfully');
+        } else {
+            showErrorMessage('Please correct the errors above and try again.');
+        }
+    });
+}
+
+/**
+ * Setup real-time validation on input fields
+ */
+function setupRealtimeValidation() {
+    // Validate on blur (when user leaves the field)
+    $('#fullName').on('blur', function() {
+        validateFullName();
+    });
+
+    $('#email').on('blur', function() {
+        validateEmail();
+    });
+
+    $('#phone').on('input blur', function() {
+        validatePhone();
+    });
+
+    $('#password').on('blur', function() {
+        validatePassword();
+    });
+
+    $('#confirmPassword').on('blur', function() {
+        validateConfirmPassword();
+    });
+
+    // Restrict phone input to numbers only
+    $('#phone').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+}
+
+/**
+ * Initialize password show/hide functionality
+ */
+function initializePasswordToggle() {
+    // Toggle password visibility
+    $('#togglePassword').on('click', function() {
+        togglePasswordVisibility('password', 'togglePassword');
+    });
+
+    $('#toggleConfirmPassword').on('click', function() {
+        togglePasswordVisibility('confirmPassword', 'toggleConfirmPassword');
+    });
+}
+
+/**
+ * Toggle password field visibility
+ * @param {string} fieldId - ID of the password field
+ * @param {string} buttonId - ID of the toggle button
+ */
+function togglePasswordVisibility(fieldId, buttonId) {
+    const passwordField = $('#' + fieldId);
+    const toggleButton = $('#' + buttonId);
+    
+    if (passwordField.attr('type') === 'password') {
+        passwordField.attr('type', 'text');
+        toggleButton.text('Hide');
+    } else {
+        passwordField.attr('type', 'password');
+        toggleButton.text('Show');
     }
+}
+
+/**
+ * Validate entire form
+ * @returns {boolean} - True if all validations pass
+ */
+function validateForm() {
+    let isValid = true;
+    
+    // Clear all field styles
+    clearFieldStyles();
+    
+    // Validate each field
+    if (!validateFullName()) isValid = false;
+    if (!validateEmail()) isValid = false;
+    if (!validatePhone()) isValid = false;
+    if (!validatePassword()) isValid = false;
+    if (!validateConfirmPassword()) isValid = false;
+    
+    return isValid;
+}
+
+/**
+ * Validate full name field
+ * @returns {boolean} - True if valid
+ */
+function validateFullName() {
+    const fullName = $('#fullName').val().trim();
+    const field = $('#fullName');
+    
+    if (fullName === '') {
+        setFieldError(field);
+        return false;
+    } else if (fullName.length < 2) {
+        setFieldError(field);
+        return false;
+    } else {
+        setFieldSuccess(field);
+        return true;
+    }
+}
+
+/**
+ * Validate email field using regex
+ * @returns {boolean} - True if valid
+ */
+function validateEmail() {
+    const email = $('#email').val().trim();
+    const field = $('#email');
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+    if (email === '') {
+        setFieldError(field);
+        return false;
+    } else if (!emailRegex.test(email)) {
+        setFieldError(field);
+        return false;
+    } else {
+        setFieldSuccess(field);
+        return true;
+    }
+}
+
+/**
+ * Validate phone number (exactly 10 digits)
+ * @returns {boolean} - True if valid
+ */
+function validatePhone() {
+    const phone = $('#phone').val().trim();
+    const field = $('#phone');
+    const phoneRegex = /^[0-9]{10}$/;
+    
+    if (phone === '') {
+        setFieldError(field);
+        return false;
+    } else if (!phoneRegex.test(phone)) {
+        setFieldError(field);
+        return false;
+    } else {
+        setFieldSuccess(field);
+        return true;
+    }
+}
+
+/**
+ * Validate password with proper format requirements
+ * @returns {boolean} - True if valid
+ */
+function validatePassword() {
+    const password = $('#password').val();
+    const field = $('#password');
+    
+    // Password requirements: minimum 8 characters, at least one uppercase, one lowercase, one number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+    
+    if (password === '') {
+        setFieldError(field);
+        return false;
+    } else if (!passwordRegex.test(password)) {
+        setFieldError(field);
+        return false;
+    } else {
+        setFieldSuccess(field);
+        return true;
+    }
+}
+
+/**
+ * Validate confirm password field
+ * @returns {boolean} - True if valid
+ */
+function validateConfirmPassword() {
+    const password = $('#password').val();
+    const confirmPassword = $('#confirmPassword').val();
+    const field = $('#confirmPassword');
+    
+    if (confirmPassword === '') {
+        setFieldError(field);
+        return false;
+    } else if (password !== confirmPassword) {
+        setFieldError(field);
+        return false;
+    } else {
+        setFieldSuccess(field);
+        return true;
+    }
+}
+
+/**
+ * Set field error state
+ * @param {jQuery} field - jQuery field object
+ */
+function setFieldError(field) {
+    field.removeClass('field-success').addClass('field-error');
+}
+
+/**
+ * Set field success state
+ * @param {jQuery} field - jQuery field object
+ */
+function setFieldSuccess(field) {
+    field.removeClass('field-error').addClass('field-success');
+}
+
+/**
+ * Clear all field styles
+ */
+function clearFieldStyles() {
+    $('input').removeClass('field-error field-success');
+}
+
+/**
+ * Show error message in red box
+ * @param {string} message - Error message to display
+ */
+function showErrorMessage(message) {
+    const messageBox = $('#messageBox');
+    messageBox.removeClass('success-message')
+             .addClass('error-message')
+             .text(message)
+             .show();
+    
+    // Scroll to top to show message
+    $('html, body').animate({ scrollTop: 0 }, 300);
+}
+
+/**
+ * Show success message in green box
+ * @param {string} message - Success message to display
+ */
+function showSuccessMessage(message) {
+    const messageBox = $('#messageBox');
+    messageBox.removeClass('error-message')
+             .addClass('success-message')
+             .text(message)
+             .show();
+    
+    // Scroll to top to show message
+    $('html, body').animate({ scrollTop: 0 }, 300);
+}
+
+/**
+ * Hide message box
+ */
+function hideMessage() {
+    $('#messageBox').hide();
 }
